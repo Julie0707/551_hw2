@@ -1,0 +1,351 @@
+---
+title: "Stats551_HW2"
+author: "Geovanna Caballero, Fengqi Lin, Jiaqi Zhu"
+format: html
+editor: visual
+---
+
+We contribute to this homework equally.
+
+## Problem 1
+
+  Assuming a coffee company is interested in how annual coffee consumption U relates to other variables for a specific person, we then might want to predict θ=U based on available data of X (age), Y (country), Z (attended a picnic or not), V (screen time), and W (passport photo). Let us denote that for each individual, we have data Di= {Di1=age, Di2=country, Di3=attended a picnic or not, Di4=screen time,Di5=passport photo}
+  
+  **1. Bayesian coverage:**
+  
+  **Inferential scenario:** we start with a prior distribution for U based on previous data on coffee consumption in the population. Suppose that our belief is that younger people consume more coffee than older people, or that people from certain countries consume more coffee than others. The posterior probability of U is the prior updated by Bayes’ theorem based on the information of individual collected.
+  
+  
+  **Meaning of the probability:** an interval [l(d), u(d)] based on data D=d, has 95% Bayesian coverage for θ if P(l(d)<<u(d)|D=d)=0.95. Having observed the data and calculated the conditional probability, the unknown θ is in the given interval with a probability of 95%.
+  
+  This is useful when a coffee company tries to make marketing decisions for populations of different demographics. Market staff could tailor strategies based on the collected information of individual customers.
+  
+  **2. Frequentist coverage:**
+  
+  **Inferential scenario:** a coffee company is interested in the daily coffee consumption habits of adults in a particular country. To estimate the average amount of coffee an adult drinks in a day, they conducted a survey by randomly selecting 1000 adults in that country and asking about how many cups of coffee on average they drink in a day. From the samples, they calculated an average coffee consumption of 2 cups per day with a standard deviation of 0.5 cups. Using this data, they calculated a 95% confidence interval for the true mean daily coffee consumption to be (1.969 cups, 2.031 cups).
+  
+  **Meaning of the probability:** a random interval [l(D), u(D)] has 95% frequentist coverage for θ (true mean daily coffee consumption) if, before the data are gathered, P(l(D)<<u(D)|)=0.95. If we are running a large number of unrelated (independent) experiments and create the interval [l(d), u(d)] for each of them, then we can expect that 95% of the intervals contain the correct parameter value.
+  
+  For coffee companies interested in broad trends of coffee consumption without specific prior beliefs, this approach allows them to make generalizations about a population based on a sample. 
+
+
+## Problem 2
+
+a. Find the posterior distributions, means, variances and 95% quantile based confidence intervals for θA and θB.
+```{r}
+qgamma(c(0.025,.975), 237, 20)
+qgamma(c(0.025,.975), 125, 14)
+
+```
+![](p2_a.png)
+
+
+b. Compute and plot the posterior expectation of θB under the prior θB ∼ gamma(12 × n0, n0), for each value of n0 ∈ {1, 2, . . . , 50}. Describe what sort of prior beliefs about θB would be necessary in order for the posterior expectation of θB to be close to that of θA.
+
+```{r}
+library(ggplot2)
+set.seed(551)
+
+yB <- c(11, 11, 10, 9, 9, 8, 7, 10, 6, 8, 8, 9, 7)
+
+n_B <- length(yB)
+sum_yB <- sum(yB)
+
+# Function to compute the posterior expectation
+compute_posterior_mean <- function(alpha_prior, beta_prior) {
+  alpha_posterior <- alpha_prior + sum_yB
+  beta_posterior <- beta_prior + n_B
+  return(alpha_posterior / beta_posterior)
+}
+
+# Compute posterior expectation for each n0 belongs to {1, 2, ... 50}
+n0_values <- 1:50
+posterior_means <- sapply(n0_values, function(n0) compute_posterior_mean(12 * n0, n0))
+
+# Plot the results
+df <- data.frame(n0 = n0_values, posterior_mean = posterior_means)
+
+ggplot(df, aes(x = n0, y = posterior_mean)) +
+  geom_line() +
+  ggtitle("Posterior Expectation of θ_B for different n0 values") +
+  geom_hline(yintercept = 11.85) +
+  xlab("n0") +
+  ylab("Posterior Expectation of θ_B")
+
+
+```
+
+**From the plot, we can see that larger values of n0, which lead to larger values of shape and rate parameters of prior distribution of B, would be necessary in order for the posterior expectation of B to be close to that of A.**
+
+
+c. Should knowledge about population A tell us anything about the population B? Discuss whether or not it makes sense to have p(θA, θb) = p(θA) × p(θB).
+
+Given that type B mice are related to type A mice, then it’s reasonable to believe that information about group A mice could tell us about group B mice. In the real world, two strains of mice might be biologically related to each other for some reason. For example, they may share certain traits or genetics that may affect tumor growth. Thus, the tumor count rates might be expected to be similar to some extent.
+
+p( A, B)=p( A)*p( B) implies that the prior distribution for A and B are independent. Before observing any data, our beliefs of A would not influence the beliefs of B and vice versa.
+
+If we have no reason to believe that the rates of tumorigenesis in strains A and B are related, then the assumption of independence is appropriate. Suppose that two groups of mice are from the same lab and even manipulated by the same technician. The assumption that the two priors are independent will not make sense. In addition, if the sample size n is large enough, we can get rid of the prior information.
+
+
+d. Investigate the adequacy of the Poisson sampling model via posterior predictive checks and Monte Carlo technique for population A.
+```{r}
+yA <- c(12, 9, 12, 14, 13, 13, 15, 8, 15, 6)
+
+# Parameters for the gamma prior for theta_A
+alpha_prior <- 120
+beta_prior <- 10
+
+# Update the parameters for the gamma posterior for theta_A using the conjugacy property of the Gamma-Poisson model
+alpha_posterior <- alpha_prior + sum(yA)
+beta_posterior <- beta_prior + length(yA)
+
+set.seed(551)
+
+# Sample theta_A values from the posterior distribution
+thetaA.mc <- rgamma(10000, shape = alpha_posterior, rate = beta_posterior)
+
+# For each sampled theta_A, generate new data from a Poisson distribution
+yA.mc <- matrix(rpois(10000 * length(yA), lambda = rep(thetaA.mc, each = length(yA))), ncol = length(yA))
+
+# Compute the test statistic t(s) for each simulated dataset
+t_s <- rowMeans(yA.mc) / apply(yA.mc, 1, sd)
+
+# Compute the test statistic for the observed data
+t_observed <- mean(yA) / sd(yA)
+
+# Plot histogram of t_s values and add a vertical line for t_observed
+hist(t_s, breaks = 50, col = "lightyellow", main = "Posterior Predictive Distribution", xlab = "t(s)")
+abline(v = t_observed, col = "red")
+
+legend("topright", legend = "Observed t", col = "red", lwd = 1)
+
+mean(t_s >= t_observed)
+```
+
+**The t(yobs) lies within the central bulk of the histogram above. This suggests that the observed test statistic is consistent with those generated under the Poisson model, indicating that the Poisson sampling model is adequate. About 35.88% (out of 10,000 Monte Carlo samples) of the simulated test statistics are equal to or more extreme than the observed test statistic. This suggests that the Poisson sampling model for population A is reasonable.**
+
+
+e. Repeat the above goodness of fit evaluation for the data in population B.
+
+```{r}
+yB <- c(11, 11, 10, 9, 9, 8, 7, 10, 6, 8, 8, 9, 7)
+
+# Parameters for the gamma prior for theta_B
+alpha_prior <- 12
+beta_prior <- 1
+
+# Update the parameters for the gamma posterior for theta_B using the conjugacy property of the Gamma-Poisson model
+alpha_posterior <- alpha_prior + sum(yB)
+beta_posterior <- beta_prior + length(yB)
+
+set.seed(1234)
+
+# Sample theta_B values from the posterior distribution
+thetaB.mc <- rgamma(10000, shape = alpha_posterior, rate = beta_posterior)
+
+# For each sampled theta_B, generate new data from a Poisson distribution
+yB.mc <- matrix(rpois(10000 * length(yB), lambda = rep(thetaB.mc, each = length(yB))), ncol = length(yB))
+
+# Compute the test statistic t(s) for each simulated dataset
+t_s <- rowMeans(yB.mc) / apply(yB.mc, 1, sd)
+
+# Compute the test statistic for the observed data
+t_observed <- mean(yB) / sd(yB)
+
+# Plot histogram of t_s values and add a vertical line for t_observed
+hist(t_s, breaks = 50, col = "lightyellow", main = "Posterior Predictive Distribution", xlab = "t(s)")
+abline(v = t_observed, col = "red")
+
+legend("topright", legend = "Observed t", col = "red", lwd = 1)
+
+mean(t_s >= t_observed)
+```
+
+From the histogram, we observe that out of 10,000 Monte Carlo samples, only about 0.51% had values of t(y) that equaled or exceeded t(yobs). This indicates that the Poisson sampling model for population B is flawed.
+
+## Problem 3
+
+a. Show that if y|θ is exponentially distributed with rate θ, then the gamma prior distribution is conjugate for inferences about θ given an i.i.d. sample of y values.
+![](p3_a.png)
+
+b. The length of life of a light bulb manufactured by a certain process has an exponential distribution with unknown rate θ. Suppose the prior for θ is a gamma distribution with coefficient of variation 0.5. A random sample of light bulbs is to be tested and the life time of each obtained. If the coefficient of variation of the distribution of θ is to be reduced to 0.1, how many light bulbs need to be tested?
+
+
+c. In part (b), if the coefficient of variation refers to φ := 1/θ, which is now endowed with an
+inverse-gamma prior, how would your answer be changed?
+
+
+d. Suppose that y|θ is exponentially distributed with rate θ and θ is endowed with prior Gamma(α, β). Suppose we observe a data sample y ≥ 100 but do not observe its exact value. What is the posterior distribution of θ as a function of α and β?
+![](p3_d.png)
+
+e. Suppose now that we are told y = 100, what is the posterior mean and variance of θ? Explain why the posterior variance is higher in part (d) even though more information
+has been observed.
+
+![](p3_e.png)
+
+
+## Problem 4
+
+A scientist using an apparatus of known standard deviation σ = 0.12 takes nine i.i.d. measurements of some quantity. The measurements are assumed to be normally distributed, with the stated standard deviation σ and unknown mean θ, where the scientist is willing to place a vague on θ (i.e., the variance of the prior distribution is very large). If the sample mean obtained is 17.653, obtain limits of an interval between which a tenth measurement will lie with 99% probability.
+
+![Answer](p4.png)
+Since the variance of the prior distribution is very large, we assume it's close to infinity. Based on this assumption, the interval between which a tenth measurement will lie with 99% probability is **(17.3272, 17.9788)**
+
+
+## Problem 5
+
+The files school1.dat, school2.dat, school3.dat contain data on the amount of time students from three high schools spent on studying or homework during an exam period. Analyze data from each of these schools separately, using the normal model with a conjugate prior distribution, in which {µ0 = 5, σ20 = 4, κ0 = 1, ν0 = 2}, and compute or approximate the following:
+
+```{r}
+# Parameters
+mu0 <- 5
+sigma2_0 <- 4
+kappa0 <- 1
+nu0 <- 2
+
+# Load the data sets file
+school1 <- as.numeric(read.table("/Users/jiaqizhu/Downloads/stats551/hw/school1.dat")[,1])
+school2 <- as.numeric(read.table("/Users/jiaqizhu/Downloads/stats551/hw/school2.dat")[,1])
+school3 <- as.numeric(read.table("/Users/jiaqizhu/Downloads/stats551/hw/school3.dat")[,1])
+```
+
+a. posterior means and 95% confidence intervals for the mean θ and standard deviation σ from each school;
+
+```{r}
+# posteriors parameters
+update_parameters <- function(data, mu0, sigma2_0, kappa0, nu0) {
+  n <- length(data)
+  ybar <- mean(data)
+  s2 <- var(data)
+  
+  kappa_n <- kappa0 + n
+  mu_n <- (kappa0 * mu0 + n * ybar) / kappa_n
+  nu_n <- nu0 + n
+  sigma2_n <- (nu0*sigma2_0 + (n-1)*s2 + kappa0*n*(ybar-mu0)^2/kappa_n) / (nu_n)
+  
+  list(mu_n=mu_n, sigma2_n=sigma2_n, kappa_n=kappa_n, nu_n=nu_n)
+}
+
+post_params1 <- update_parameters(school1, mu0, sigma2_0, kappa0, nu0)
+post_params2 <- update_parameters(school2, mu0, sigma2_0, kappa0, nu0)
+post_params3 <- update_parameters(school3, mu0, sigma2_0, kappa0, nu0)
+
+```
+
+```{r}
+# function to get posterior means and CI for the mean and standard deviation
+get_post_stats <- function(post_params){
+  s2_sampling <- 1/rgamma(10000,shape = post_params$nu_n / 2, rate = post_params$sigma2_n * (post_params$nu_n / 2))
+  theta_sampling <- rnorm(10000, mean = post_params$mu_n, sd = sqrt(s2_sampling/post_params$kappa_n))
+  list(
+    mean_theta = mean(theta_sampling),
+    CI_theta = quantile(theta_sampling, c(0.025, 0.975)),
+    mean_sigma = mean(sqrt(s2_sampling)),
+    CI_sigma = quantile(sqrt(s2_sampling),c(0.025, 0.975))
+  )
+}
+
+school1_result <- get_post_stats(post_params1)
+school2_result <- get_post_stats(post_params2)
+school3_result <- get_post_stats(post_params3)
+
+```
+```{r}
+# Display the results
+library(knitr)
+
+# Create the data frame
+results <- data.frame(
+  School = rep(c("School1", "School2", "School3"), each=2),
+  Parameter = rep(c("θ", "σ"), times=3),
+  Posterior_Mean = c(school1_result$mean_theta, school1_result$mean_sigma, school2_result$mean_theta, school2_result$mean_sigma, school3_result$mean_theta, school3_result$mean_sigma),
+  Lower_CI = c(school1_result$CI_theta[1], school1_result$CI_sigma[1], school2_result$CI_theta[1], school2_result$CI_sigma[1], school3_result$CI_theta[1], school3_result$CI_sigma[1]),
+  Upper_CI = c(school1_result$CI_theta[2], school1_result$CI_sigma[2], school2_result$CI_theta[2], school2_result$CI_sigma[2], school3_result$CI_theta[2], school3_result$CI_sigma[2])
+)
+
+# Display the table
+kable(results, caption = "Posterior means and 95% confidence intervals", align = 'c')
+```
+
+b. The posterior probability that θi < θj < θk for all six permutations {i, j, k} of {1, 2, 3}
+
+```{r}
+get_theta <- function(post_params){
+  s2_sampling <- 1/rgamma(10000,shape = post_params$nu_n / 2, rate = post_params$sigma2_n * (post_params$nu_n / 2))
+  theta_sampling <- rnorm(10000, mean = post_params$mu_n, sd = sqrt(s2_sampling/post_params$kappa_n))
+  return(theta_sampling)
+  
+}
+theta1_sims <- get_theta(post_params1)
+theta2_sims <- get_theta(post_params2)
+theta3_sims <- get_theta(post_params3)
+
+prob_theta_123 <- mean(theta1_sims < theta2_sims & theta2_sims < theta3_sims)
+prob_theta_132 <- mean(theta1_sims < theta3_sims & theta3_sims < theta2_sims)
+prob_theta_213 <- mean(theta2_sims < theta1_sims & theta1_sims < theta3_sims)
+prob_theta_231 <- mean(theta2_sims < theta3_sims & theta3_sims < theta1_sims)
+prob_theta_321 <- mean(theta3_sims < theta2_sims & theta2_sims < theta1_sims)
+prob_theta_312 <- mean(theta3_sims < theta1_sims & theta1_sims < theta2_sims)
+cat("P(θ1 < θ2 < θ3) = ", prob_theta_123, "\n")
+cat("P(θ1 < θ3 < θ2) = ", prob_theta_132, "\n")
+cat("P(θ2 < θ1 < θ3) = ", prob_theta_213, "\n")
+cat("P(θ2 < θ3 < θ1) = ", prob_theta_231, "\n")
+cat("P(θ3 < θ2 < θ1) = ", prob_theta_321, "\n")
+cat("P(θ3 < θ1 < θ2) = ", prob_theta_312, "\n")
+```
+
+c. The posterior probability that Y˜i < Y˜j < Y˜k for all six permutations {i, j, k} of {1, 2, 3}, where Y˜i is a sample from the posterior predictive distribution of school i for i = 1, 2, 3.
+
+```{r}
+get_y_pred <- function(post_params){
+  s2_sampling <- 1/rgamma(10000,shape = post_params$nu_n / 2, rate = post_params$sigma2_n * (post_params$nu_n / 2))
+  theta_sampling <- rnorm(10000, mean = post_params$mu_n, sd = sqrt(s2_sampling/post_params$kappa_n))
+  y_pred <- rnorm(10000, mean = theta_sampling, sd = sqrt(s2_sampling))
+  return(y_pred)
+}
+
+y1_tilde <- get_y_pred(post_params1)
+y2_tilde <- get_y_pred(post_params2)
+y3_tilde <- get_y_pred(post_params3)
+
+y_tilde_123 <- mean(y1_tilde < y2_tilde & y2_tilde < y3_tilde)
+y_tilde_132 <- mean(y1_tilde < y3_tilde & y3_tilde < y2_tilde)
+y_tilde_213 <- mean(y2_tilde < y1_tilde & y1_tilde < y3_tilde)
+y_tilde_231 <- mean(y2_tilde < y3_tilde & y3_tilde < y1_tilde)
+y_tilde_312 <- mean(y3_tilde < y1_tilde & y1_tilde < y2_tilde)
+y_tilde_321 <- mean(y3_tilde < y2_tilde & y2_tilde < y1_tilde)
+cat("P(Y1 < Y2 < Y3) = ", y_tilde_123, "\n")
+cat("P(Y1 < Y3 < Y2) = ", y_tilde_132, "\n")
+cat("P(Y2 < Y1 < Y3) = ", y_tilde_213, "\n")
+cat("P(Y2 < Y3 < Y1) = ", y_tilde_231, "\n")
+cat("P(Y3 < Y2 < Y1) = ", y_tilde_321, "\n")
+cat("P(Y3 < Y1 < Y2) = ", y_tilde_312, "\n")
+
+```
+
+d. Compute the posterior probability that θ1 > max{θ2, θ3} and the posterior probability that Y˜1 > max{Y˜2, Y˜3}.
+
+```{r}
+theta1_sims <- get_theta(post_params1)
+theta2_sims <- get_theta(post_params2)
+theta3_sims <- get_theta(post_params3)
+
+# For θ
+prob_theta1_max = mean(theta1_sims > pmax(theta2_sims, theta3_sims))
+
+y1_tilde <- get_y_pred(post_params1)
+y2_tilde <- get_y_pred(post_params2)
+y3_tilde <- get_y_pred(post_params3)
+
+# For Y_tilda
+prob_ytilda1_max = mean(y1_tilde > pmax(y2_tilde, y3_tilde))
+
+cat("P(θ1 > max{θ2, θ3}): ",prob_theta1_max,"\n")
+cat("P(Y˜1 > max{Y˜2, Y˜3}): ",prob_ytilda1_max,"\n")
+```
+
+ci_normal \<- function(params) { mu \<- params$mu_n  sigma <- sqrt(params$sigma2_n / (params\$kappa_n)) qnorm(c(0.025, 0.975), mean=mu, sd=sigma) }
+
+ci_inv_gamma \<- function(params) { alpha \<- params$nu_n / 2  beta <- params$nu_n \* params\$sigma2_n / 2 qgamma(c(0.975, 0.025), shape=alpha, rate=beta) }
+
+ci_theta1 \<- ci_normal(post_params1) cat("95% CI for theta1:",ci_theta1,'\n') ci_sigma1 \<- sqrt(ci_inv_gamma(post_params1)) cat("95% CI for sigma1:",ci_sigma1,'\n') ci_theta2 \<- ci_normal(post_params2) cat("95% CI for theta2:",ci_theta2,'\n') ci_sigma2 \<- sqrt(ci_inv_gamma(post_params2)) cat("95% CI for sigma2:",ci_sigma2,'\n') ci_theta3 \<- ci_normal(post_params3) cat("95% CI for theta3:",ci_theta3,'\n') ci_sigma3 \<- sqrt(ci_inv_gamma(post_params3)) cat("95% CI for sigma3:",ci_sigma3,'\n')
