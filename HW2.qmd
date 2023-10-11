@@ -1,7 +1,10 @@
 ---
 title: "Stats551_HW2"
 author: "Geovanna Caballero, Fengqi Lin, Jiaqi Zhu"
-format: html
+format:
+  html:
+    embed-resources: true
+    code-overflow: wrap
 editor: visual
 ---
 
@@ -9,38 +12,37 @@ We contribute to this homework equally.
 
 ## Problem 1
 
-  Assuming a coffee company is interested in how annual coffee consumption U relates to other variables for a specific person, we then might want to predict θ=U based on available data of X (age), Y (country), Z (attended a picnic or not), V (screen time), and W (passport photo). Let us denote that for each individual, we have data Di= {Di1=age, Di2=country, Di3=attended a picnic or not, Di4=screen time,Di5=passport photo}
-  
-  **1. Bayesian coverage:**
-  
-  **Inferential scenario:** we start with a prior distribution for U based on previous data on coffee consumption in the population. Suppose that our belief is that younger people consume more coffee than older people, or that people from certain countries consume more coffee than others. The posterior probability of U is the prior updated by Bayes’ theorem based on the information of individual collected.
-  
-  
-  **Meaning of the probability:** an interval [l(d), u(d)] based on data D=d, has 95% Bayesian coverage for θ if P(l(d)<<u(d)|D=d)=0.95. Having observed the data and calculated the conditional probability, the unknown θ is in the given interval with a probability of 95%.
-  
-  This is useful when a coffee company tries to make marketing decisions for populations of different demographics. Market staff could tailor strategies based on the collected information of individual customers.
-  
-  **2. Frequentist coverage:**
-  
-  **Inferential scenario:** a coffee company is interested in the daily coffee consumption habits of adults in a particular country. To estimate the average amount of coffee an adult drinks in a day, they conducted a survey by randomly selecting 1000 adults in that country and asking about how many cups of coffee on average they drink in a day. From the samples, they calculated an average coffee consumption of 2 cups per day with a standard deviation of 0.5 cups. Using this data, they calculated a 95% confidence interval for the true mean daily coffee consumption to be (1.969 cups, 2.031 cups).
-  
-  **Meaning of the probability:** a random interval [l(D), u(D)] has 95% frequentist coverage for θ (true mean daily coffee consumption) if, before the data are gathered, P(l(D)<<u(D)|)=0.95. If we are running a large number of unrelated (independent) experiments and create the interval [l(d), u(d)] for each of them, then we can expect that 95% of the intervals contain the correct parameter value.
-  
-  For coffee companies interested in broad trends of coffee consumption without specific prior beliefs, this approach allows them to make generalizations about a population based on a sample. 
+Assuming a coffee company is interested in how annual coffee consumption U relates to other variables for a specific person, we then might want to predict θ=U based on available data of X (age), Y (country), Z (attended a picnic or not), V (screen time), and W (passport photo). Let us denote that for each individual, we have data Di= {Di1=age, Di2=country, Di3=attended a picnic or not, Di4=screen time,Di5=passport photo}
 
+**1. Bayesian coverage:**
+
+**Inferential scenario:** we start with a prior distribution for U based on previous data on coffee consumption in the population. Suppose that our belief is that younger people consume more coffee than older people, or that people from certain countries consume more coffee than others. The posterior probability of U is the prior updated by Bayes' theorem based on the information of individual collected.
+
+**Meaning of the probability:** an interval \[l(d), u(d)\] based on data D=d, has 95% Bayesian coverage for θ if P(l(d)\<\<u(d)\|D=d)=0.95. Having observed the data and calculated the conditional probability, the unknown θ is in the given interval with a probability of 95%.
+
+This is useful when a coffee company tries to make marketing decisions for populations of different demographics. Market staff could tailor strategies based on the collected information of individual customers.
+
+**2. Frequentist coverage:**
+
+**Inferential scenario:** a coffee company is interested in the daily coffee consumption habits of adults in a particular country. To estimate the average amount of coffee an adult drinks in a day, they conducted a survey by randomly selecting 1000 adults in that country and asking about how many cups of coffee on average they drink in a day. From the samples, they calculated an average coffee consumption of 2 cups per day with a standard deviation of 0.5 cups. Using this data, they calculated a 95% confidence interval for the true mean daily coffee consumption to be (1.969 cups, 2.031 cups).
+
+**Meaning of the probability:** a random interval \[l(D), u(D)\] has 95% frequentist coverage for θ (true mean daily coffee consumption) if, before the data are gathered, P(l(D)\<\<u(D)\|)=0.95. If we are running a large number of unrelated (independent) experiments and create the interval \[l(d), u(d)\] for each of them, then we can expect that 95% of the intervals contain the correct parameter value.
+
+For coffee companies interested in broad trends of coffee consumption without specific prior beliefs, this approach allows them to make generalizations about a population based on a sample.
 
 ## Problem 2
 
-a. Find the posterior distributions, means, variances and 95% quantile based confidence intervals for θA and θB.
+a.  Find the posterior distributions, means, variances and 95% quantile based confidence intervals for θA and θB.
+
 ```{r}
 qgamma(c(0.025,.975), 237, 20)
 qgamma(c(0.025,.975), 125, 14)
 
 ```
+
 ![](p2_a.png)
 
-
-b. Compute and plot the posterior expectation of θB under the prior θB ∼ gamma(12 × n0, n0), for each value of n0 ∈ {1, 2, . . . , 50}. Describe what sort of prior beliefs about θB would be necessary in order for the posterior expectation of θB to be close to that of θA.
+b.  Compute and plot the posterior expectation of θB under the prior θB ∼ gamma(12 × n0, n0), for each value of n0 ∈ {1, 2, . . . , 50}. Describe what sort of prior beliefs about θB would be necessary in order for the posterior expectation of θB to be close to that of θA.
 
 ```{r}
 library(ggplot2)
@@ -77,17 +79,16 @@ ggplot(df, aes(x = n0, y = posterior_mean)) +
 
 **From the plot, we can see that larger values of n0, which lead to larger values of shape and rate parameters of prior distribution of B, would be necessary in order for the posterior expectation of B to be close to that of A.**
 
+c.  Should knowledge about population A tell us anything about the population B? Discuss whether or not it makes sense to have p(θA, θb) = p(θA) × p(θB).
 
-c. Should knowledge about population A tell us anything about the population B? Discuss whether or not it makes sense to have p(θA, θb) = p(θA) × p(θB).
+Given that type B mice are related to type A mice, then it's reasonable to believe that information about group A mice could tell us about group B mice. In the real world, two strains of mice might be biologically related to each other for some reason. For example, they may share certain traits or genetics that may affect tumor growth. Thus, the tumor count rates might be expected to be similar to some extent.
 
-Given that type B mice are related to type A mice, then it’s reasonable to believe that information about group A mice could tell us about group B mice. In the real world, two strains of mice might be biologically related to each other for some reason. For example, they may share certain traits or genetics that may affect tumor growth. Thus, the tumor count rates might be expected to be similar to some extent.
-
-p( A, B)=p( A)*p( B) implies that the prior distribution for A and B are independent. Before observing any data, our beliefs of A would not influence the beliefs of B and vice versa.
+p( A, B)=p( A)\*p( B) implies that the prior distribution for A and B are independent. Before observing any data, our beliefs of A would not influence the beliefs of B and vice versa.
 
 If we have no reason to believe that the rates of tumorigenesis in strains A and B are related, then the assumption of independence is appropriate. Suppose that two groups of mice are from the same lab and even manipulated by the same technician. The assumption that the two priors are independent will not make sense. In addition, if the sample size n is large enough, we can get rid of the prior information.
 
+d.  Investigate the adequacy of the Poisson sampling model via posterior predictive checks and Monte Carlo technique for population A.
 
-d. Investigate the adequacy of the Poisson sampling model via posterior predictive checks and Monte Carlo technique for population A.
 ```{r}
 yA <- c(12, 9, 12, 14, 13, 13, 15, 8, 15, 6)
 
@@ -124,8 +125,7 @@ mean(t_s >= t_observed)
 
 **The t(yobs) lies within the central bulk of the histogram above. This suggests that the observed test statistic is consistent with those generated under the Poisson model, indicating that the Poisson sampling model is adequate. About 35.88% (out of 10,000 Monte Carlo samples) of the simulated test statistics are equal to or more extreme than the observed test statistic. This suggests that the Poisson sampling model for population A is reasonable.**
 
-
-e. Repeat the above goodness of fit evaluation for the data in population B.
+e.  Repeat the above goodness of fit evaluation for the data in population B.
 
 ```{r}
 yB <- c(11, 11, 10, 9, 9, 8, 7, 10, 6, 8, 8, 9, 7)
@@ -165,32 +165,39 @@ From the histogram, we observe that out of 10,000 Monte Carlo samples, only abou
 
 ## Problem 3
 
-a. Show that if y|θ is exponentially distributed with rate θ, then the gamma prior distribution is conjugate for inferences about θ given an i.i.d. sample of y values.
+a.  Show that if y\|θ is exponentially distributed with rate θ, then the gamma prior distribution is conjugate for inferences about θ given an i.i.d. sample of y values.
+
 ![](p3_a.png)
 
-b. The length of life of a light bulb manufactured by a certain process has an exponential distribution with unknown rate θ. Suppose the prior for θ is a gamma distribution with coefficient of variation 0.5. A random sample of light bulbs is to be tested and the life time of each obtained. If the coefficient of variation of the distribution of θ is to be reduced to 0.1, how many light bulbs need to be tested?
+b.  The length of life of a light bulb manufactured by a certain process has an exponential distribution with unknown rate θ. Suppose the prior for θ is a gamma distribution with coefficient of variation 0.5. A random sample of light bulbs is to be tested and the life time of each obtained. If the coefficient of variation of the distribution of θ is to be reduced to 0.1, how many light bulbs need to be tested? ![](p3_b.png)
 
+If the coefficient of variation of the distribution of θ is to be reduced to 0.1, 96 light bulbs need to be tested.
 
-c. In part (b), if the coefficient of variation refers to φ := 1/θ, which is now endowed with an
-inverse-gamma prior, how would your answer be changed?
+c.  In part (b), if the coefficient of variation refers to φ := 1/θ, which is now endowed with an inverse-gamma prior, how would your answer be changed? ![](p3_c.png) So even when endowed with an inverse-gamma prior, the answer for the light bulbs numbers was not changed, n = 96 still.
 
+d.  Suppose that y\|θ is exponentially distributed with rate θ and θ is endowed with prior Gamma(α, β). Suppose we observe a data sample y ≥ 100 but do not observe its exact value. What is the posterior distribution of θ as a function of α and β?
 
-d. Suppose that y|θ is exponentially distributed with rate θ and θ is endowed with prior Gamma(α, β). Suppose we observe a data sample y ≥ 100 but do not observe its exact value. What is the posterior distribution of θ as a function of α and β?
-![](p3_d.png)
+![](p3_d.png) Note: in the question, we are given the information that there is a data sample y ≥ 100, without specific value, so we did an integration from 100 to infinity.
 
-e. Suppose now that we are told y = 100, what is the posterior mean and variance of θ? Explain why the posterior variance is higher in part (d) even though more information
-has been observed.
+e.  Suppose now that we are told y = 100, what is the posterior mean and variance of θ? Explain why the posterior variance is higher in part (d) even though more information has been observed.
 
 ![](p3_e.png)
 
+Given the results from part d and e, we see that additional information does not provide a smaller posterior variance.
+
+From the identity of iterated variance:
+
+**Var(θ) = Var(E(θ\|Y)) + E(Var(θ\|Y))**
+
+We see that Var(θ) ≥ Var(E(θ\|Y)) and **Var(θ) ≥ E(Var(θ\|Y))**, but this does not imply that Var(θ) ≥ Var(θ\|Y). So even more information is given, the posterior variance Var(θ\|Y) might still \< Var(θ).
 
 ## Problem 4
 
 A scientist using an apparatus of known standard deviation σ = 0.12 takes nine i.i.d. measurements of some quantity. The measurements are assumed to be normally distributed, with the stated standard deviation σ and unknown mean θ, where the scientist is willing to place a vague on θ (i.e., the variance of the prior distribution is very large). If the sample mean obtained is 17.653, obtain limits of an interval between which a tenth measurement will lie with 99% probability.
 
-![Answer](p4.png)
-Since the variance of the prior distribution is very large, we assume it's close to infinity. Based on this assumption, the interval between which a tenth measurement will lie with 99% probability is **(17.3272, 17.9788)**
+![](p4.png)
 
+Since **the variance of the prior distribution is very large**, we assume it's close to infinity. Based on this assumption, the interval between which a tenth measurement will lie with 99% probability is **(17.3272, 17.9788)**
 
 ## Problem 5
 
@@ -209,7 +216,7 @@ school2 <- as.numeric(read.table("/Users/jiaqizhu/Downloads/stats551/hw/school2.
 school3 <- as.numeric(read.table("/Users/jiaqizhu/Downloads/stats551/hw/school3.dat")[,1])
 ```
 
-a. posterior means and 95% confidence intervals for the mean θ and standard deviation σ from each school;
+a.  posterior means and 95% confidence intervals for the mean θ and standard deviation σ from each school;
 
 ```{r}
 # posteriors parameters
@@ -250,6 +257,7 @@ school2_result <- get_post_stats(post_params2)
 school3_result <- get_post_stats(post_params3)
 
 ```
+
 ```{r}
 # Display the results
 library(knitr)
@@ -267,7 +275,7 @@ results <- data.frame(
 kable(results, caption = "Posterior means and 95% confidence intervals", align = 'c')
 ```
 
-b. The posterior probability that θi < θj < θk for all six permutations {i, j, k} of {1, 2, 3}
+b.  The posterior probability that θi \< θj \< θk for all six permutations {i, j, k} of {1, 2, 3}
 
 ```{r}
 get_theta <- function(post_params){
@@ -294,7 +302,7 @@ cat("P(θ3 < θ2 < θ1) = ", prob_theta_321, "\n")
 cat("P(θ3 < θ1 < θ2) = ", prob_theta_312, "\n")
 ```
 
-c. The posterior probability that Y˜i < Y˜j < Y˜k for all six permutations {i, j, k} of {1, 2, 3}, where Y˜i is a sample from the posterior predictive distribution of school i for i = 1, 2, 3.
+c.  The posterior probability that Y˜i \< Y˜j \< Y˜k for all six permutations {i, j, k} of {1, 2, 3}, where Y˜i is a sample from the posterior predictive distribution of school i for i = 1, 2, 3.
 
 ```{r}
 get_y_pred <- function(post_params){
@@ -323,7 +331,7 @@ cat("P(Y3 < Y1 < Y2) = ", y_tilde_312, "\n")
 
 ```
 
-d. Compute the posterior probability that θ1 > max{θ2, θ3} and the posterior probability that Y˜1 > max{Y˜2, Y˜3}.
+d.  Compute the posterior probability that θ1 \> max{θ2, θ3} and the posterior probability that Y˜1 \> max{Y˜2, Y˜3}.
 
 ```{r}
 theta1_sims <- get_theta(post_params1)
@@ -343,9 +351,3 @@ prob_ytilda1_max = mean(y1_tilde > pmax(y2_tilde, y3_tilde))
 cat("P(θ1 > max{θ2, θ3}): ",prob_theta1_max,"\n")
 cat("P(Y˜1 > max{Y˜2, Y˜3}): ",prob_ytilda1_max,"\n")
 ```
-
-ci_normal \<- function(params) { mu \<- params$mu_n  sigma <- sqrt(params$sigma2_n / (params\$kappa_n)) qnorm(c(0.025, 0.975), mean=mu, sd=sigma) }
-
-ci_inv_gamma \<- function(params) { alpha \<- params$nu_n / 2  beta <- params$nu_n \* params\$sigma2_n / 2 qgamma(c(0.975, 0.025), shape=alpha, rate=beta) }
-
-ci_theta1 \<- ci_normal(post_params1) cat("95% CI for theta1:",ci_theta1,'\n') ci_sigma1 \<- sqrt(ci_inv_gamma(post_params1)) cat("95% CI for sigma1:",ci_sigma1,'\n') ci_theta2 \<- ci_normal(post_params2) cat("95% CI for theta2:",ci_theta2,'\n') ci_sigma2 \<- sqrt(ci_inv_gamma(post_params2)) cat("95% CI for sigma2:",ci_sigma2,'\n') ci_theta3 \<- ci_normal(post_params3) cat("95% CI for theta3:",ci_theta3,'\n') ci_sigma3 \<- sqrt(ci_inv_gamma(post_params3)) cat("95% CI for sigma3:",ci_sigma3,'\n')
